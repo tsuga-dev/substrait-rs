@@ -53,6 +53,15 @@ fn substrait_version() -> Result<semver::Version, Box<dyn Error>> {
                 .stdout,
         )?;
 
+        // tsuga: a cargo git-dependency checkout of the substrait submodule has no
+        // tags, so `git describe --tags` returns "" and version parsing fails. Fall
+        // back to the spec version this commit pins so it builds as a git dependency.
+        let git_describe = if git_describe.trim().is_empty() {
+            "v0.85.0-0-g0000000000000000000000000000000000000000\n".to_string()
+        } else {
+            git_describe
+        };
+
         // Extract the parts.
         let mut split = git_describe.split('-');
         let git_version = split.next().unwrap_or_default();
